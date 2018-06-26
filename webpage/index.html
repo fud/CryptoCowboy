@@ -20,7 +20,9 @@
 	
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-			<script src="https://d3dy5gmtp8yhk7.cloudfront.net/2.1/pusher.min.js"></script>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script src="https://d3dy5gmtp8yhk7.cloudfront.net/2.1/pusher.min.js"></script>
 
 	<!--
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -58,27 +60,16 @@
 						
 			var APR = 0.00;
 			var dayTradePercent = 0;
-
+			
+			$( function() 
+			{
+				$( document ).tooltip();
+			} );
+			
 			//	Socket IO
 			$(function () 
 			{
 				socket = io();
-				
-				$('form').submit(function()
-				{
-					if($('#textBox').val() == "teslaOnMoon")
-					{
-						//$( "#investmentDiv" ).show();
-					}
-					else
-					{
-						socket.emit('inputReceived', $('#textBox').val());	//	Emit textbox
-					}
-					
-					$('#textBox').val('');	//	Clear Text
-					
-					return false;
-				});
 				
 				socket.on('emit', function(msg)
 				{
@@ -138,16 +129,16 @@
 					if(parseFloat(reinvestmentPercentage) > 0.00)
 					{
 						
-						color = Math.floor((parseFloat(reinvestmentPercentage) * 2.4));
+						color = Math.floor((parseFloat(reinvestmentPercentage) * 2.0));
 						color = rgbToHex(color);
 						color = "#00" + color + "00";
-						$("#reserveMultiplierDiv").css('color', (color));
+						$("#cashDiv").css('color', (color));
 						
 						
 					}
 					else if(parseFloat(reinvestmentPercentage) < 0.00)
 					{
-						color = Math.floor(-parseFloat(reinvestmentPercentage) * 2.4);
+						color = Math.floor(-parseFloat(reinvestmentPercentage) * 2.0);
 						
 						//$('#messages').append($('<li>').text(currentPricePercentage));
 						//$('#messages').append($('<li>').text(-parseFloat(currentPricePercentage)));
@@ -175,6 +166,7 @@
 					XRP = msg;
 					XRP = parseFloat(XRP).toFixed(2);
 					$('#sharesDiv').text("x" + XRP);
+					$('#sharesValueDiv').text("$" + (XRP * pricePerShare).toFixed(2));
 				});
 				
 				socket.on('reserve', function(msg)
@@ -187,6 +179,7 @@
 				{
 					reserveXRP = parseFloat(msg).toFixed(2);
 					$('#reserveXRPDiv').text("x" + reserveXRP);
+					$('#reserveXRPValueDiv').text("$" + (reserveXRP * pricePerShare).toFixed(2));
 				});
 				
 				socket.on('fixedPoint', function(msg)
@@ -241,7 +234,7 @@
 					if(parseFloat(currentPricePercentage) > 0.00)
 					{
 						
-						color = Math.floor((parseFloat(currentPricePercentage) * 2.4));
+						color = Math.floor((parseFloat(currentPricePercentage) * 2.0));
 						color = rgbToHex(color);
 						color = "#00" + color + "00";
 						$("#currentPriceDiv").css('color', (color));
@@ -250,7 +243,7 @@
 					}
 					else if(parseFloat(currentPricePercentage) < 0.00)
 					{
-						color = Math.floor(-parseFloat(currentPricePercentage) * 2.4);
+						color = Math.floor(-parseFloat(currentPricePercentage) * 2.0);
 						
 						//$('#messages').append($('<li>').text(currentPricePercentage));
 						//$('#messages').append($('<li>').text(-parseFloat(currentPricePercentage)));
@@ -378,6 +371,7 @@
 					
 					totalXRP = parseFloat(XRP) + parseFloat(reserveXRP);
 					totalXRPDiv.innerHTML = "x" +  totalXRP.toFixed(2);
+					totalXRPValueDiv.innerHTML = "$" +  (totalXRP * pricePerShare).toFixed(2);
 					
 					totalLiquid = parseFloat(USD) + (parseFloat(XRP) * parseFloat(pricePerShare));
 					marketValueDiv.innerHTML = "$" +  totalLiquid.toFixed(2);
@@ -395,11 +389,11 @@
 					
 					let maxCash = (fixedPoint * reserveMultiplier);
 					let timeWarp = ((maxCash / 2.00) / USD);	//	Up to double speed (5min) when things are good (when TW = 0.5)
-					let timeoutTime = 300000.00;	//	Every 5.0 min
+					let timeoutTime = 150000.00;	//	Every 2.5 min
 					timeoutTime = (timeoutTime * timeWarp);
 					timeoutTime = parseInt(timeoutTime);
 					
-					timeoutTime =  timeoutTime + 300000.00;	//	Add fixed time of 5 min
+					timeoutTime =  timeoutTime + 60000.00;	//	Add fixed time of 1 min
 					let targetTD = ((24.00 * 60.00 * 60.00) / (timeoutTime / 1000.00) / 10.00);
 	
 	
@@ -411,12 +405,14 @@
 					getBTC();
 					//***********************************************************			
 
+
+					//***********************************************************
 					
 				});
 				
 				socket.on('beep', function(msg)
 				{
-					beep();
+					//beep();
 					totalTransactions = msg;
 				});
 				
@@ -438,12 +434,18 @@
 					APR = (Math.pow((1 + ((dayTradePercent * (1 / (1 + reserveMultiplier))) / 100)), 365) * 100) - 100;	//	
 					//-------------------
 
+					
+					let profit = (netWorth - 1000.00);
+					let profitPercentage = (profit / 1000.00) * 100.00;
+
+					profitDiv.innerHTML = "$" + profit.toFixed(2);
+					profitPercentageDiv.innerHTML = profitPercentage.toFixed(2) + "%";
+					
 					dayTradeGainsDiv.innerHTML = "$" + msg.toFixed(2);
 					gainPerDayDiv.innerHTML = "$" + gainPerDay;
 					//percentGainsDiv.innerHTML = dayTradePercent + "%";
 					APRDiv.innerHTML = APR.toFixed(2) + "%";
-					
-					
+			
 					daysUntilTenDiv.innerHTML = timeUntilGoal(10000, netWorth);
 					daysUntilHundredDiv.innerHTML = timeUntilGoal(100000, netWorth);
 					daysUntilMillionDiv.innerHTML = timeUntilGoal(1000000, netWorth);
@@ -546,7 +548,20 @@
 					</div>
 				</th>
 				<th style="width:30%">
-				
+					Please allow 30 seconds for all data to load.
+					<br>
+					<br>
+					Source Code: https://github.com/Brietoe/CryptoCowboy
+					<br>
+					<br>
+					<div title="Measure Once, Cut Twice">
+					Running an experimental algorithim, please bear with me.
+					</div>
+					<br>
+					<br>
+					Account starting balance: $1000 - Starting XRP price: $0.5275
+					<br>
+					<br>
 					<table style="width:100%" border="1">
 						<tr>
 							<th>
@@ -561,17 +576,17 @@
 						</tr>
 						
 						<tr>
-							<th>
+							<th title="Buy price: When XRP hits this price, we buy more.">
 								<div id=orderPriceBuyDiv>
 									Buy Price
 								</div>
 							</th>
-							<th>
+							<th title="XRP Price: Current price of XRP. The number is red when we are close to our buy price and green when we are close to our sell price.">
 								<div id=currentPriceDiv>
 									XRP Price
 								</div>
 							</th> 
-							<th>
+							<th title="Sell price: When XRP hits this price, we sell some.">
 								<div id=orderPriceSellDiv>
 									Sell Price
 								</div>
@@ -598,40 +613,62 @@
 							</th>
 						</tr>
 						<tr>
-							<th>
+							<th title="Market: The money that we get to play with.">
 								Market
 							</th>
-							<th>
+							<th title="USD in the Market: This is the total amount of USD we have available to buy more XRP with. This number is green when we have plenty of USD available and red when we are low in USD.">
 								<div id=cashDiv>
 									Waiting for incoming data...
 								</div>
 							</th> 
-							<th>
-								<div id=sharesDiv>
-									Waiting for incoming data...
-								</div>
+							<th title="XRP in the Market: This is the number of XRP we have available to sell.">
+								<table style="width:100%" border="0">
+									<tr>
+										<th>
+											<div id=sharesDiv>
+												Waiting for incoming data...
+											</div>
+										</th>
+										<th>
+											<div id=sharesValueDiv>
+												Waiting for incoming data...
+											</div>
+										</th>
+									</tr>
+								</table>
 							</th>
-							<th>
+							<th title="Total Market Value: This is the total value of USD and XRP that we have available to trade with.">
 								<div id=marketValueDiv>
 									Waiting for incoming data...
 								</div>
 							</th>
 						</tr>
 						<tr>
-							<th>
+							<th title="Money from profits that we set aside to reduce our trading risks.">
 								Reserve
 							</th>
-							<th>
+							<th title="USD Reserve: This is the amount of USD in our account that we will never trade with ever again. The bot automatically reinvests profits into itself but always takes a small amount to set aside so that it will remain risk free.">
 								<div id=reserveDiv>
 									Waiting for incoming data...
 								</div>
 							</th> 
-							<th>
-								<div id=reserveXRPDiv>
-									Waiting for incoming data...
-								</div>
+							<th title="XRP Reserve: This is the amount of XRP in our account that we will never trade with ever again. We HODL this XRP. The bot automatically reinvests profits into itself but always takes a small amount to set aside so that it remains risk free.">
+								<table style="width:100%" border="0">
+									<tr>
+										<th>
+											<div id=reserveXRPDiv>
+												Waiting for incoming data...
+											</div>
+										</th>
+										<th>
+											<div id=reserveXRPValueDiv>
+												Waiting for incoming data...
+											</div>
+										</th>
+									</tr>
+								</table>
 							</th>
-							<th>
+							<th title="Total Reserve: USD reserve + XRP reserve">
 								<div id=totalReserveDiv>
 									Waiting for incoming data...
 								</div>
@@ -647,11 +684,22 @@
 								</div>
 							</th> 
 							<th>
-								<div id=totalXRPDiv>
-									Waiting for incoming data...
-								</div>
+								<table style="width:100%" border="0">
+									<tr>
+										<th>
+											<div id=totalXRPDiv>
+												Waiting for incoming data...
+											</div>
+										</th>
+										<th>
+											<div id=totalXRPValueDiv>
+												Waiting for incoming data...
+											</div>
+										</th>
+									</tr>
+								</table>
 							</th>
-							<th>
+							<th title="Our networth... Go up darn it!">
 								<div id=netWorthDiv>
 									Waiting for incoming data...
 								</div>
@@ -670,15 +718,35 @@
 					
 					<br>
 					-->
-
+					<br>
+					<div title="More tooltips with better descriptions are on their way.">
+						Added tooltips to clarify confusion! (Not mobile friendly)
+					</div>
 					
-					<br>
-					<br>
-
+					
 					
 				</th>
-				<th style="width:15%">					
+				<th style="width:15%">	
+
 					<div>
+						Profit:
+						<div id=profitDiv>
+							Waiting for incoming data...
+						</div>
+					</div>
+					
+					<br>
+					
+					<div>
+						Profit Percentage:
+						<div id=profitPercentageDiv>
+							Waiting for incoming data...
+						</div>
+					</div>
+					
+					<br>
+					
+					<div title="Total Gain: This is the total amount we have earned from day trading only. Example, if I make a sell order for $20 and made a 1.5% profit on that sale, it would be a gain of $0.30 even though my overall account balance might move up much more than that.">
 						Total gain:
 						<div id=dayTradeGainsDiv>
 							Waiting for incoming data...
@@ -687,7 +755,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="(Total gain) / (Number of days bot has been running)">
 						Daily gains:
 						<div id=gainPerDayDiv>
 							Waiting for incoming data...
@@ -707,8 +775,8 @@
 					<br>
 					-->
 					
-					<div>
-						 APR:
+					<div title="Gain APR: This isn't the actual direct APR from my overall account balance. It's the calculated APR based off of the gains from day trading only. It's purely a measurment of my bot's performance and not the actual APR. This number is always positive even if we have a negative profit.">
+						 Gain APR:
 						<div id=APRDiv>
 							Waiting for incoming data...
 						</div>
@@ -716,7 +784,8 @@
 					
 					<br>
 					
-					<div>
+					
+					<div title="Time until $10K: Calculated time, including compunding interest until the networth of our account hits $10K. This does not factor in a price increase of XRP, only the amount we gain from day trading.">
 						 Time until $10,000:
 						<div id=daysUntilTenDiv>
 							Waiting for incoming data...
@@ -725,7 +794,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Time until $100K: Calculated time, including compunding interest until the networth of our account hits $100K. This does not factor in a price increase of XRP, only the amount we gain from day trading.">
 						 Time until $100,000:
 						<div id=daysUntilHundredDiv>
 							Waiting for incoming data...
@@ -734,7 +803,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Time until $1M: Calculated time, including compunding interest until the networth of our account hits $1M. This does not factor in a price increase of XRP, only the amount we gain from day trading.">
 						 Time until $1,000,000:
 						<div id=daysUntilMillionDiv>
 							Waiting for incoming data...
@@ -748,7 +817,7 @@
 				
 				<th style="width:15%">
 					
-					<div>
+					<div title="Run time: Time we have been collecting data">
 						Run time:
 						<div id=hoursDiv>
 							0
@@ -757,7 +826,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Connection Status: Is the bot connected to the XRPL?">
 						Connection Status:
 						<div id=connectionStatusDiv>
 							Not connected
@@ -766,7 +835,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Auto Trader Status: Is the bot activly managing trades?">
 						Auto Trader:
 						<div id=autoTraderStatusDiv>
 							Disabled
@@ -775,7 +844,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Users Online: Number of users online.">
 						Users Online:
 						<div id=userCountDiv>
 							Waiting for incoming data...
@@ -784,7 +853,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Total Transactions: Total number of transactions since we started collecting data">
 						Total Transactions:
 						<div id=totalTransactionsDiv>
 							Waiting for incoming data...
@@ -793,7 +862,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Transactions per Day:(Total transactions) / (Days we have been collecting data)">
 						Transactions per Day:
 						<div id=transactionsPerDayDiv>
 							Waiting for incoming data...
@@ -802,7 +871,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Target T/D: The target number of transactions per day this bot is aiming to have. This number is controlled by manipulating the range percentage to match the market volitility.">
 						Target T/D:
 						<div id=targetTDDiv>
 							Waiting for incoming data...
@@ -811,7 +880,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Fixed point: This is a target XRP value that my bot tries to maintain. If the fixed point is $1000 and my total XRP value is $900, it will create larger buy orders than sell orders in an attempt to create an equilibrium. The name 'fixed point' is actually a legacy term from the early days of my bot when the number was actually fixed. It's now dynamic and changes based off of multiple different factors. I will likely change the name later.">
 						Fixed Point:
 						<div id=fixedPointDiv>
 							Waiting for incoming data...
@@ -820,7 +889,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Range: This is the target price difference in XRP value to execute a transaction at.  Example, my XRP is worth $1200 and the range is $16, my bot will place a buy order when the value of my XRP becomes $1200 - $16 = 1184 and a sell order when the XRP value becomes $1200 + $16 = $1216">
 						Range:
 						<div id=rangeDiv>
 							Waiting for incoming data...
@@ -829,7 +898,7 @@
 					
 					<br>
 					
-					<div>
+					<div title="Range Percentage: The percentage price movement we need to see for a trade to execute.">
 						Range Percentage:
 						<div id=rangePercentageDiv>
 							Waiting for incoming data...
@@ -838,14 +907,14 @@
 					
 					<br>
 
-					<div>
+					<div title="Sales multiplier: Makes the base size of each trade 1% of the fixed point">
 						Sales Multiplier:
 						<div id=salesMultiplierDiv>
 							Sales multiplier
 						</div>
 					</div>
 					<br>
-					<div>
+					<div title="Reinvestment multiplier: This is the maximum amount of cash to XRP ratio I can have. Anytime the cash is in a surplus, The fixed point gets increased and the reinvestment multiplier gets a slight increase. The larger the cash to XRP ratio, the safer the autotrader is from massive price drops. The problem with a really high cash to XRP ratio is that you can miss out on some gains if the price of XRP increases significantly very quickly.">
 						Reinvestment multiplier:
 						<div id=reserveMultiplierDiv>
 							Disabled
@@ -857,14 +926,6 @@
 				</th>
 			</tr>
 		</table>
-		
-		<form action="">
-			<input id="textBox" autocomplete="off" />
-			
-			<button>
-				Send
-			</button>
-		</form>
 		
 	</body>
 </html>

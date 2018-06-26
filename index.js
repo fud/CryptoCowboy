@@ -1,6 +1,5 @@
 'use strict';
 
-//	I'm not the best NodeJS programmer so this is just here to make sure I don't do anything stupid.
 const memwatch = require('memwatch-next');
 memwatch.on('leak', (info) => 
 {
@@ -15,6 +14,7 @@ memwatch.on('leak', (info) =>
   
 });
 
+
 var app = require('express')();
 var http = require('http').Server(app);
 var fs = require('fs');
@@ -24,22 +24,22 @@ var readLastLines = require('read-last-lines');
 
 /* import RippleAPI and support libraries */
 const RippleAPI = require('ripple-lib').RippleAPI;
-
 // Creates an instance of the rippleAPI class
 const api = new RippleAPI(
 {
 	server: 'wss://s1.ripple.com', // Public rippled server
-	timeout: 30000,	//	Timeout before RippleAPI transactions failing
-	feeCushion: 1.2	//	XRP fee flexibility
+	timeout: 30000,
+	feeCushion: 1.2
 });
 const assert = require('assert');
 
 
-// Credentials of the account placing the order - Keep this information private!
-const address = 'WALLET-ADDRESS-HERE';	//	Main Wallet
-const secret = 'SECRET-KEY-HERE';
+/* Credentials of the account placing the order */ //KEEP YOUR SECRECT KEY SECRET! SHHH!
 
-// Milliseconds to wait between checks for a new ledger.
+const address = 'rWallet Address Here';	//FRAT
+const secret = 'sSecret key Here';
+
+/* Milliseconds to wait between checks for a new ledger. */
 const INTERVAL = 3000;
 
 /* Number of ledgers to check for valid transaction before failing */
@@ -49,21 +49,24 @@ const myInstructions = {maxLedgerVersionOffset: ledgerOffset, maxFee: maxFee};
 
 var programStartingTime = 0;
 
+
 // Variables
-var fixedPoint = 5000.00;	//	This number doesn't really matter because the value gets read from a file at the start of the program
+var fixedPoint = 667.00;
 
-var rangeLow = 0.0075;	//	The lowest possible range for trades. 0.75%
-var rangeHigh = 0.05;	//	Highest possible range for trades 5%
+var rangeLow = 0.0025;
+var rangeHigh = 0.05;
 
-var rangeIncrement = 0.0010;	//	How much to increase the range percentage by after every trade. This is used to adapt to volatility
-var rangeIncrementTime = 0.0001;	//	How much to decrease the range percentage by after everytime the 'decreaseRange()' function gets called. This is used to nudge a certain number of transactions per day to execute.
+var rangeIncrement = 0.0010;
+var rangeIncrementTime = 0.0001;
 
-var rangePercentage = 0.01;	//	Starting range percentage. This value doesnt matter because it's read from a file at start of program.
-var lastTradeRangePercentage = 0.00;	//	This is used to reset orders if a trade has not occured in a long time.
+var rangePercentage = 0.01;
+var lastTradeRangePercentage = 0.00;
 
-var closeOrders = 1;	//	When this value is '1', the program closes all outstanding orders.
+var closeOrders = 1;
 
 var range = 0.00;
+
+//var range = Math.floor(fixedPoint * rangePercentage);
 
 var reserveMultiplier = 0.50;		
 var transactionID = 0;
@@ -194,76 +197,8 @@ io.on('connection', function(socket)
 	socket.on('inputReceived', function(message)
 	{
 		console.log('Message: ' + message);
-		io.emit('emit', message);
-		
-		if(message == "Connect")
-		{
-			log("Connecting to Ripple API");
-			
-			api.connect().then(() => 
-			{
-				log('Connected.');
-				connection = "Connected";
-				io.emit('connectionStatus', connection);
-				
-			}).catch(console.error);
-		}
-		else if(message == "Disconnect")
-		{
-			log("Disconnecting from Ripple API");
-			
-			api.disconnect().then(() => 
-			{
-				log('API disconnected.');
-				connection = "Not connected";
-				io.emit('connectionStatus', connection);
-			}).catch(console.error);
-		}
-		else if(message == "Exit")
-		{
-			log("Shutting down server.");
-			process.exit();
-		}
-		else if(message == "Start")
-		{
-			autoTraderStatus = "Enabled";
-			io.emit('autoTraderStatus', autoTraderStatus);
-			log("Starting Auto Trader");
-			state = "Start";
-			start();
-		}
-		else if(message == "Stop")
-		{
-			autoTraderStatus = "Disabled";
-			io.emit('autoTraderStatus', autoTraderStatus);
-			log("Stoping Auto Trader, please wait...");
-			
-			state = "Stop";
-		}
-		else if(message == "Reset")
-		{
-			writeTime();
-			dayTradeGains = 0.00;
-			totalTransactions = 0;	
-			reserve = 0.00;			
-			reserveXRP = 0.00;		
-
-			writeFiles();
-			
-			setTimeout(readFiles, 1000);
-			
-
-		}
-		else if(message == "BumpRange")
-		{
-			log("Bumping range.");
-			rangePercentage = rangePercentage + rangeIncrement;
-		}
-		else if(message == "DropRange")
-		{
-			log("Dropping range.");
-			rangePercentage = rangePercentage - rangeIncrement;
-		}
+		//io.emit('emit', message);
+		//io.emit('emit', "All commands are disabled since this is a public portal");
 	});
   
 	
@@ -293,6 +228,7 @@ function start()
 	console.log('totalTransactions');
 	console.log(totalTransactions);
 	
+	//console.log('Executing FRAT');
 	console.log(' ');
 	console.log(' ');
 	
@@ -342,6 +278,11 @@ function start()
 				totalTransactions++;
 				io.emit('beep', totalTransactions);
 	
+				//console.log("Line 403: Reserve:");
+				//console.log(reserve);
+				//console.log(typeof(reserve));
+				//reserve += Number((parseFloat(range) / 10.00).toFixed(2));
+				
 				dayTradeGains += tradeValue;
 				
 				let percentageCashVSMax = cash / (marketValue * reserveMultiplier);
@@ -359,9 +300,36 @@ function start()
 						
 					reserveXRP += parseFloat(((parseFloat(tradeValue * (reserveMultiplier / 5.00)) * parseFloat(inversePercentageCashVsMax)) / 10.00).toFixed(4));
 				}
+				/*
+				if((marketValue > (fixedPoint * 0.50)) && (cash >= (marketValue * reserveMultiplier / 2.0)))
+				{
+					reserve += parseFloat(((parseFloat(tradeValue) * parseFloat(percentageCashVSMax)) / 10.00).toFixed(2));
+					
+					reserveXRP += parseFloat(((parseFloat(tradeValue) * parseFloat(inversePercentageCashVsMax)) / 10.00).toFixed(4));
+					
+					//reserveXRP += parseFloat((parseFloat(tradeValue / pricePerShare) / 100.00).toFixed(4));	//	Tiny bit
+				}
+				else if(cash < (marketValue * reserveMultiplier / 2.0))
+				{
+					reserveXRP += parseFloat(((parseFloat(tradeValue) * parseFloat(percentageCashVSMax)) / 10.00).toFixed(4));
+					
+					reserve += parseFloat(((parseFloat(tradeValue) * parseFloat(inversePercentageCashVsMax)) / 10.00).toFixed(2));
+					//
+					//reserveXRP += parseFloat((parseFloat(tradeValue / pricePerShare) / 10.00).toFixed(4));
+					
+					//reserve += parseFloat((parseFloat(tradeValue) / 100.00).toFixed(2));	//	Tiny bit
+				}
+				*/
 				
 				let mes = "We gained $" + parseFloat(tradeValue.toFixed(2)).toString() + " on that trade.";
 				log(mes);
+				
+				//console.log("Line 386: Reserve:");
+				//console.log(reserve);
+				//console.log(typeof(reserve));
+				
+				//fixedPoint = fixedPoint - (range * (salesMultiplier - 1));
+				//range = fixedPoint  * rangePercentage;
 				
 				io.emit('dayTradeGains', dayTradeGains);
 			}
@@ -372,13 +340,16 @@ function start()
 				log("We bought shares!");
 				totalTransactions++;
 				io.emit('beep', totalTransactions);
-
+				
+				//fixedPoint = fixedPoint + (range * (salesMultiplier - 1));
+				//range = fixedPoint  * rangePercentage;
 			}
 			
 			if((buyVsSell != 0) && (rangePercentage < rangeHigh))
 			{
 				rangePercentage = rangePercentage + rangeIncrement;
 				lastTradeRangePercentage = rangePercentage;
+				//log("New Range Percentage: " + (rangePercentage * 100.00).toFixed(2) + "%");
 			}
 		}
 		
@@ -389,7 +360,14 @@ function start()
 			
 			updateVariables();
 			
-			if((marketValue * reserveMultiplier) < cash)
+			//var netWorth = marketValue + USD;
+			
+			//console.log("IF: MV * RM < cash");
+			//console.log(marketValue);
+			//console.log(reserveMultiplier);
+			//console.log(cash);
+			
+			if((fixedPoint * reserveMultiplier) < cash)
 			{			
 				if(reserveMultiplier < 5.00)
 				{
@@ -401,7 +379,16 @@ function start()
 
 				range = marketValue * rangePercentage;
 				
+				//console.log("Line 442: Reserve:");
+				//console.log(reserve);
+				//console.log(typeof(reserve));
+				
 				reserve += parseFloat((fixedPointChange * (reserveMultiplier / 5.00)).toFixed(2));	//	(At max)50% reinvested, 50% reserve
+				
+			
+				//console.log("Line 425: Reserve:");
+				//console.log(reserve);
+				//console.log(typeof(reserve));
 				
 				log(" ");
 				log("Our cash is now in a surplus.");
@@ -410,11 +397,14 @@ function start()
 				log(mes);
 				
 				log("New fixed point: " + (fixedPoint.toFixed(2)).toString());
-
+				//log(fixedPoint);
 				log("New range: " + (range.toFixed(2)).toString());
-
+				//log(range);
+				//log(" ");
+				
+				
 				log("New Reserve Multiplier: " + reserveMultiplier.toString());
-
+				//log(reserveMultiplier);
 				log(" ");
 			}
 			
@@ -435,6 +425,8 @@ function start()
 			closeOrders = 0;
 			excecuteDelay = 1;
 			repeatPrevention = 1;
+			
+			//cancelOrders(orders, orders.length, 5000);
 			
 			if(orders.length > 0)
 			{
@@ -578,11 +570,11 @@ function decreaseRange()
 	
 	//let timeoutTime = 450000.00;	//	Every 7.5 min
 	//	Max speed is every 5 min
-	let timeoutTime = 300000.00;	//	Every 5.0 min
+	let timeoutTime = 150000.00;	//	Every 2.5 min
 	timeoutTime = (timeoutTime * timeWarp);
 	timeoutTime = parseInt(timeoutTime);
 	
-	timeoutTime =  timeoutTime + 300000.00;	//	Add fixed time of 5 min
+	timeoutTime =  timeoutTime + 60000.00;	//	Add fixed time of 1 min
 	
 	setTimeout(decreaseRange, timeoutTime);
 	//setTimeout(decreaseRange, 900000);	//	Every 15 min
@@ -603,12 +595,21 @@ function buy()
 	let buyPoint = marketValue - range;	//	Point at which we buy
 	let buyPrice = (buyPoint / XRP);	//	Price of shares when we buy
 	
-	let fixedPointSwayBuy = (fixedPoint / marketValue);	//	Larger when MV is low
+	//let fixedPointSwayBuy = (fixedPoint / marketValue);	//	Larger when MV is low
+	
+	let lossDifference = 0.00;
+	if(fixedPoint > marketValue)
+	{
+		lossDifference = (fixedPoint - marketValue) / 20.00;
+		lossDifference = (lossDifference / buyPrice);
+	}
+
 	
 	orderPriceBuy = buyPrice;
 
 	let shares = Math.floor(range / buyPrice);	//	Shares to trade
-	shares = shares * salesMultiplier * fixedPointSwayBuy * fixedPointSwayBuy;
+	shares = shares * salesMultiplier;
+	shares = shares + lossDifference;
 	
 	if(shares == 0)
 	{
@@ -650,10 +651,17 @@ function sell()
 	let sellPrice = (sellPoint / XRP);	//	Price of shares when we sell
 	orderPriceSell = sellPrice;
 	
-	let fixedPointSwaySell = (marketValue / fixedPoint);		//	Larger when MV is High
+	//let fixedPointSwaySell = (marketValue / fixedPoint);		//	Larger when MV is High
+	let profitDifference = 0.00;
+	if(marketValue > fixedPoint)
+	{
+		profitDifference = (marketValue - fixedPoint) / 20.00;
+		profitDifference = (profitDifference / sellPrice);
+	}
 	
 	let shares = Math.floor(range / sellPrice);	//	Shares to trade
-	shares = shares * salesMultiplier * fixedPointSwaySell * fixedPointSwaySell;
+	shares = shares * salesMultiplier;
+	shares = shares + profitDifference;
 	
 	if(shares == 0)
 	{
@@ -662,7 +670,14 @@ function sell()
 	
 	let cost = Number((shares * sellPrice).toFixed(6));	//	Cost for transaction
 	
-	tradeValue = parseFloat(cost) * rangePercentage;
+	if((marketValue / fixedPoint) > 1.00)
+	{
+		tradeValue = parseFloat(cost) * ((marketValue / fixedPoint) - 1.00);
+	}
+	else
+	{
+		tradeValue = parseFloat(cost) * rangePercentage;
+	}
 	
 	let sellPriceClean = sellPrice.toFixed(4);	//	For text output only
 	let costClean = cost.toFixed(4);	//	For text output only
@@ -1055,10 +1070,10 @@ function writeTimeout()
 	});
 }
 
-//	We make the http server listen on port 8080
-http.listen(8080, function()
+//	We make the http server listen on port 3000
+http.listen(3000, function()
 {
-	console.log('listening on *:8080');
+	console.log('listening on *:3000');
 });
 
 function updateVariables()
@@ -1081,18 +1096,8 @@ function updateVariables()
 	console.log(marketValue);
 	
 	range = marketValue * rangePercentage;
-	
-	let lowerValue = 0.00;
-	if(cash >= marketValue)
-	{
-		lowerValue = marketValue;
-	}
-	else
-	{
-		lowerValue = cash;
-	}
-	
-	salesMultiplier = (((lowerValue - 1.00) / range) / 20.00);	//	5% of either cash or MV, whichever is lower
+
+	salesMultiplier = ((fixedPoint / range) / 5000.00);	//	0.1% of fixed point
 }
 
 function getBalance()
@@ -1219,6 +1224,5 @@ function getDateTime(unit)
 		return ("[ " + year.toString() + "-" + month.toString() + "-" + day.toString() + " ][ " + hour.toString() + ":" + min.toString() + ":" + sec.toString() + " ]");
 	}
 }
-
 
 //https://www.npmjs.com/package/read-last-lines
