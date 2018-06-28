@@ -1,20 +1,5 @@
 'use strict';
 
-const memwatch = require('memwatch-next');
-memwatch.on('leak', (info) => 
-{
-  console.error('Memory leak detected:\n', info);
-  
-  var leakMessage = "Memory Leak Detected";
-	fs.writeFile('memoryLeakDetected.txt', leakMessage, function (err) 
-	{
-		if (err) throw err;
-		console.log('Saved MemLeak!');
-	});
-  
-});
-
-
 var app = require('express')();
 var http = require('http').Server(app);
 var fs = require('fs');
@@ -22,8 +7,9 @@ var io = require('socket.io')(http);
 var request = require("request");
 var readLastLines = require('read-last-lines');
 
-/* import RippleAPI and support libraries */
+// import RippleAPI and support libraries
 const RippleAPI = require('ripple-lib').RippleAPI;
+
 // Creates an instance of the rippleAPI class
 const api = new RippleAPI(
 {
@@ -34,10 +20,9 @@ const api = new RippleAPI(
 const assert = require('assert');
 
 
-/* Credentials of the account placing the order */ //KEEP YOUR SECRECT KEY SECRET! SHHH!
-
-const address = 'rWallet Address Here';	//FRAT
-const secret = 'sSecret key Here';
+// Credentials of the account placing the order
+var address = '';
+var secret = '';
 
 /* Milliseconds to wait between checks for a new ledger. */
 const INTERVAL = 3000;
@@ -49,8 +34,6 @@ const myInstructions = {maxLedgerVersionOffset: ledgerOffset, maxFee: maxFee};
 
 var programStartingTime = 0;
 
-
-// Variables
 var fixedPoint = 667.00;
 
 var rangeLow = 0.0025;
@@ -65,8 +48,6 @@ var lastTradeRangePercentage = 0.00;
 var closeOrders = 1;
 
 var range = 0.00;
-
-//var range = Math.floor(fixedPoint * rangePercentage);
 
 var reserveMultiplier = 0.50;		
 var transactionID = 0;
@@ -117,6 +98,7 @@ var tradeValue = 0.00;
 /////
 
 readFiles();
+readFilesOnce()
 setTimeout(decreaseRange, 60000);
 getPricePerShare();
 
@@ -183,7 +165,7 @@ io.on('connection', function(socket)
 	
 	refresh();
 	
-	readLastLines.read('log.txt', 30)
+	readLastLines.read('logs/log.txt', 30)
     .then((lines) => 
 	{
 		let splitLines = lines.split(/\r?\n/);
@@ -478,69 +460,17 @@ function start()
 
 // ----------------------
 
-/*
-(
-	function myLoop (i) //	Example function loop
-	{          
-	   setTimeout(
-	   function () 
-	   {   
-		  alert('hello');          //  your code here                
-		  if(--i)
-			  myLoop(i);      //  decrement i and call myLoop again if i > 0
-	   }, 3000)
-	}
-)(10);
-*/
-/*
 
-function cancelOrders(orders, i, delay) //	Example function loop
-{          
-   setTimeout
-   (
-	   function () 
-	   {   
-			//  Start your code here
-			orderSequence = orders[(i-1)].properties.sequence;
-			orderCancellation = {orderSequence: orderSequence};
-
-			log("Cancelling outstanding orders. Sequence #" + orderSequence.toString());
-
-			api.prepareOrderCancellation(address, orderCancellation, myInstructions).then(prepared => 
-			{						
-				return api.sign(prepared.txJSON, secret);
-			}).then(prepared => 
-			{				
-				return api.submit(prepared.signedTransaction);
-			}).then(result => 
-			{
-				console.log(result);
-			});
-			//  End your code here
-			
-			if(--i)
-				cancelOrders(orders, i, delay);      //  decrement i and call myLoop again if i > 0
-	   },
-	   delay
-   )
-}
-*/
 function shutDown()
 {
 	process.exit();
 }
 
-
 function decreaseRange()
 {
 	if(rangePercentage > rangeLow)
 	{
-		//log("Current Range Percentage:");
-		//log(rangePercentage);
 		rangePercentage = rangePercentage - rangeIncrementTime;
-		//log("New Range Percentage(Timeout): " + (rangePercentage * 100.00).toFixed(2) + "%");
-		//log(rangePercentage);
-		//closeOrders = 1;
 
 		if(lastTradeRangePercentage >= (rangePercentage + 0.005))
 		{
@@ -561,46 +491,24 @@ function decreaseRange()
 	
 	fixedPoint = parseFloat(parseFloat(fixedPoint - dropFP).toFixed(2));
 	
-	/*
-	if(cash <= (fixedPoint * reserveMultiplier / 2.00))	//	If cash is less than half of expected size
-	{
-		timeoutTime = timeoutTime * timeWarp
-	}
-	*/
-	
-	//let timeoutTime = 450000.00;	//	Every 7.5 min
-	//	Max speed is every 5 min
 	let timeoutTime = 150000.00;	//	Every 2.5 min
 	timeoutTime = (timeoutTime * timeWarp);
 	timeoutTime = parseInt(timeoutTime);
 	
-	timeoutTime =  timeoutTime + 60000.00;	//	Add fixed time of 1 min
+	timeoutTime =  timeoutTime + 300000.00;	//	Add fixed time of 5 min
 	
 	setTimeout(decreaseRange, timeoutTime);
-	//setTimeout(decreaseRange, 900000);	//	Every 15 min
-	//setTimeout(decreaseRange, 1800000);	//	Every 30 min
-	//setTimeout(decreaseRange, 1440000);	//	Every 24 min (10 times per 4 hours)
-	//setTimeout(decreaseRange, 21600000);	//	Every 6 hours
 }	
 				
-/*
-function getPrice()
-{
-	pricePerShare = 
-	setTimeout(start, 5000);
-}
-*/
 function buy()
 {
 	let buyPoint = marketValue - range;	//	Point at which we buy
 	let buyPrice = (buyPoint / XRP);	//	Price of shares when we buy
 	
-	//let fixedPointSwayBuy = (fixedPoint / marketValue);	//	Larger when MV is low
-	
 	let lossDifference = 0.00;
 	if(fixedPoint > marketValue)
 	{
-		lossDifference = (fixedPoint - marketValue) / 20.00;
+		lossDifference = (fixedPoint - marketValue) / 4.00;
 		lossDifference = (lossDifference / buyPrice);
 	}
 
@@ -655,7 +563,7 @@ function sell()
 	let profitDifference = 0.00;
 	if(marketValue > fixedPoint)
 	{
-		profitDifference = (marketValue - fixedPoint) / 20.00;
+		profitDifference = (marketValue - fixedPoint) / 4.00;
 		profitDifference = (profitDifference / sellPrice);
 	}
 	
@@ -722,7 +630,6 @@ function getPricePerShare()
 		console.log("...");
 		if (!error && response.statusCode === 200) 
 		{
-			//pricePerShare = parseFloat(body.rate);
 			pricePerShare = parseFloat(body.exchanges[0].rate);
 			console.log('Reading price: ', pricePerShare);
 			io.emit('pricePerShare', pricePerShare);
@@ -812,7 +719,7 @@ function log(message)
 	console.log(messageWithTime);
 	io.emit('emit', message);
 	
-	fs.appendFile('log.txt', messageWithTime, function (err) 
+	fs.appendFile('logs/log.txt', messageWithTime, function (err) 
 	{
 		//if (err) throw err;
 		//console.log('Saved priceLogChart!');
@@ -900,7 +807,6 @@ function refresh()
 	hours();
 }
 
-	
 function hours()
 {
 	let programCurrentTime = new Date();
@@ -913,53 +819,49 @@ function hours()
 
 function readFiles()
 {
-	fs.readFile('date.txt', function(err, data) 
+	fs.readFile('data/date.txt', function(err, data) 
 	{
 		programStartingTime = parseInt(data);
 		programStartingTime = Math.floor(programStartingTime / 1000);
 		console.log(programStartingTime);
 	});
 	
-	fs.readFile('dayTradeGains.txt', function(err, data) 
+	fs.readFile('data/dayTradeGains.txt', function(err, data) 
 	{
 		dayTradeGains = parseFloat(data);
 		console.log(dayTradeGains);
 	});
 	
-	fs.readFile('totalTransactions.txt', function(err, data) 
+	fs.readFile('data/totalTransactions.txt', function(err, data) 
 	{
 		totalTransactions = parseInt(data);
 		console.log(totalTransactions);
 	});
 	
-	fs.readFile('fixedPoint.txt', function(err, data) 
+	fs.readFile('data/fixedPoint.txt', function(err, data) 
 	{
 		fixedPoint = parseFloat(data);
 		console.log(fixedPoint);
 	});
 	
-	fs.readFile('reserve.txt', function(err, data) 
+	fs.readFile('data/reserve.txt', function(err, data) 
 	{
-		
 		reserve = parseFloat(data);
-		//console.log("Line 804: Reserve:");
-		//console.log(reserve);
-		//console.log(typeof(reserve));
 	});
 	
-	fs.readFile('rangePercentage.txt', function(err, data) 
+	fs.readFile('data/rangePercentage.txt', function(err, data) 
 	{
 		rangePercentage = parseFloat(data);
 		console.log(rangePercentage);
 	});
 	
-	fs.readFile('reserveMultiplier.txt', function(err, data) 
+	fs.readFile('data/reserveMultiplier.txt', function(err, data) 
 	{
 		reserveMultiplier = parseFloat(parseFloat(data).toFixed(3));
 		console.log(reserveMultiplier);
 	});
 	
-	fs.readFile('reserveXRP.txt', function(err, data) 
+	fs.readFile('data/reserveXRP.txt', function(err, data) 
 	{
 		reserveXRP = parseFloat(parseFloat(data).toFixed(4));
 		console.log(reserveXRP);
@@ -968,12 +870,25 @@ function readFiles()
 	io.emit('beep', totalTransactions);
 }
 
+function readFilesOnce()
+{
+	fs.readFile('config/address.txt', 'utf8', function(err, data) 
+	{
+		address = data;
+	});
+	
+	fs.readFile('config/secret.txt', 'utf8', function(err, data) 
+	{
+		secret = data;
+	});
+}
+
 // Only use once
 function writeTime()
 {
 	let getTime = new Date();
 	getTime = getTime.getTime();
-	fs.writeFile('date.txt', getTime, function (err) 
+	fs.writeFile('data/date.txt', getTime, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved!');
@@ -982,47 +897,43 @@ function writeTime()
 
 function writeFiles()
 {
-	fs.writeFile('dayTradeGains.txt', dayTradeGains, function (err) 
+	fs.writeFile('data/dayTradeGains.txt', dayTradeGains, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved gains!');
 	});
 	
-	fs.writeFile('totalTransactions.txt', totalTransactions, function (err) 
+	fs.writeFile('data/totalTransactions.txt', totalTransactions, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved transactions count!');
 	});
 	
-	fs.writeFile('fixedPoint.txt', fixedPoint, function (err) 
+	fs.writeFile('data/fixedPoint.txt', fixedPoint, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved fixedPoint!');
 	});
 	
-	fs.writeFile('reserve.txt', reserve, function (err) 
+	fs.writeFile('data/reserve.txt', reserve, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved reserve!');
-		
-		//console.log("Line 857: Reserve:");
-		//console.log(reserve);
-		//console.log(typeof(reserve));
 	});
 	
-	fs.writeFile('rangePercentage.txt', rangePercentage, function (err) 
+	fs.writeFile('data/rangePercentage.txt', rangePercentage, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved rangePercentage!');
 	});
 	
-	fs.writeFile('reserveMultiplier.txt', reserveMultiplier, function (err) 
+	fs.writeFile('data/reserveMultiplier.txt', reserveMultiplier, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved reserveMultiplier!');
 	});
 	
-	fs.writeFile('reserveXRP.txt', reserveXRP, function (err) 
+	fs.writeFile('data/reserveXRP.txt', reserveXRP, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved XRP Reserve!');
@@ -1040,19 +951,17 @@ function writePriceLog()
 	getTime = getTime - programStartingTime;
 	
 	let priceLogLine = (getTime.toString() + ", " + pricePerShare.toString() + ", " + USD.toString() + ", " + marketValue.toString() + ", " + XRP.toString() + ", \n");
-	fs.appendFile('priceLog.csv', priceLogLine, function (err) 
+	fs.appendFile('logs/priceLog.csv', priceLogLine, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved priceLogLine!');
 	});
-	//console.log("Line 891: Reserve:");
-	//console.log(reserve);
-	//console.log(typeof(reserve));
+
 	let netWorthValue = (parseFloat(USD) + parseFloat(marketValue));
 	netWorthValue = parseFloat(netWorthValue.toFixed(2));
 
 	let priceLogChart = (getTime.toString() + ", " + pricePerShare.toString() + ", " + netWorthValue.toString() + ", \n");
-	fs.appendFile('priceLogChart.csv', priceLogChart, function (err) 
+	fs.appendFile('logs/priceLogChart.csv', priceLogChart, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved priceLogChart!');
@@ -1063,7 +972,7 @@ function writeTimeout()
 {
 	let getTime = new Date();
 	getTime = getTime.getTime();
-	fs.writeFile('timeOut.txt', getTime, function (err) 
+	fs.writeFile('data/timeOut.txt', getTime, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved timeout!');
@@ -1078,26 +987,25 @@ http.listen(3000, function()
 
 function updateVariables()
 {
-	//getPricePerShare();
 	getBalance();
 	
-	console.log("XRP");
-	console.log(typeof(XRP));
-	console.log(XRP);
+	//console.log("XRP");
+	//console.log(typeof(XRP));
+	//console.log(XRP);
 	
-	console.log("ppS");
-	console.log(typeof(pricePerShare));
-	console.log(pricePerShare);
+	//console.log("ppS");
+	//console.log(typeof(pricePerShare));
+	//console.log(pricePerShare);
 	
 	marketValue = (XRP * pricePerShare);
 	
-	console.log("Updating MV");
-	console.log(typeof(marketValue));
-	console.log(marketValue);
+	//console.log("Updating MV");
+	//console.log(typeof(marketValue));
+	//console.log(marketValue);
 	
 	range = marketValue * rangePercentage;
 
-	salesMultiplier = ((fixedPoint / range) / 5000.00);	//	0.1% of fixed point
+	salesMultiplier = ((fixedPoint / range) / 5000.00);	//	0.02% of fixed point
 }
 
 function getBalance()
@@ -1139,9 +1047,6 @@ function getBalance()
 				
 				cashDifference = cash - cashOld;
 				
-				//fixedPoint = fixedPoint - cashDifference;
-				//range = fixedPoint  * rangePercentage;
-				
 				reserve = parseFloat(reserve);
 				
 				
@@ -1150,7 +1055,7 @@ function getBalance()
 				resultMessage += USD;
 				counterparty = balances[i].counterparty;
 				console.log(resultMessage);
-				//console.log("CounterParty: " + counterparty);
+
 				console.log(" ");
 				io.emit('USD', cash);
 				
