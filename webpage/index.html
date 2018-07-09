@@ -196,7 +196,7 @@
 
 				socket.on('salesMultiplier', function(msg)
 				{
-					$('#salesMultiplierDiv').text(parseFloat(msg).toFixed(4));
+					//$('#salesMultiplierDiv').text(parseFloat(msg).toFixed(4));
 				});
 
 				socket.on('orderPriceBuy', function(msg)
@@ -389,18 +389,18 @@
 					
 					let maxCash = (fixedPoint * reserveMultiplier);
 					let timeWarp = ((maxCash / 2.00) / USD);	//	Up to double speed (5min) when things are good (when TW = 0.5)
-					let timeoutTime = 150000.00;	//	Every 2.5 min
+					let timeoutTime = 300000.00;	//	Every 5 min
 					timeoutTime = (timeoutTime * timeWarp);
 					timeoutTime = parseInt(timeoutTime);
 					
 					timeoutTime =  timeoutTime + 300000.00;	//	Add fixed time of 5 min
-					let targetTD = ((24.00 * 60.00 * 60.00) / (timeoutTime / 1000.00) / 10.00);
-	
+					let targetTD = ((24.00 * 60.00 * 60.00) / (timeoutTime / 1000.00) / 50.00);
+					targetTDDiv.innerHTML = (targetTD).toFixed(3);
 	
 					var transactionsPerDay = (totalTransactions / hours).toFixed(2);
 					transactionsPerDayDiv.innerHTML = transactionsPerDay;
 					
-					targetTDDiv.innerHTML = (targetTD).toFixed(3);
+					
 					
 					getBTC();
 					//***********************************************************			
@@ -425,15 +425,16 @@
 					
 					if(hours != 0)
 					{
-						gainPerDay = (dayTradeGains / hours).toFixed(2);
+						gainPerDay = (dayTradeGains / hours).toFixed(2);	//	'hours' is actually days
 						
-						dayTradePercent = ((dayTradeGains / (netWorth)) * 100);
-						dayTradePercent = ((dayTradePercent / hours).toFixed(4));
+						//dayTradePercent = ((dayTradeGains / (netWorth)) * 100);
+						//dayTradePercent = ((dayTradePercent / hours).toFixed(4));
+						dayTradePercent = (gainPerDay - (reserve / hours) - (reserveXRP * pricePerShare / hours)) / (netWorth - reserve - (reserveXRP * pricePerShare));
 					}
 					
-					APR = (Math.pow((1 + ((dayTradePercent * (1 / (1 + reserveMultiplier))) / 100)), 365) * 100) - 100;	//	
+					APR = (Math.pow((1 + dayTradePercent), 365) * 100) - 100;	//	
 					//-------------------
-
+					//APR = (Math.pow((1 + ((dayTradePercent * (1 / (1 + reserveMultiplier))) / 100)), 365) * 100) - 100;
 					
 					let profit = (netWorth - 1000.00);
 					let profitPercentage = (profit / 1000.00) * 100.00;
@@ -513,7 +514,7 @@
 			
 			function timeUntilGoal(goalValue, currentValue) 
 			{ 
-				let timeUntil = (Math.log(goalValue / (currentValue))) / Math.log(1 + (dayTradePercent / 100.00));
+				let timeUntil = (Math.log(goalValue / (currentValue))) / Math.log(1 + dayTradePercent);
 	
 				if(timeUntil >= 365.25)
 				{
@@ -552,11 +553,6 @@
 					<br>
 					<br>
 					Source Code: https://github.com/Brietoe/CryptoCowboy
-					<br>
-					<br>
-					<div title="Measure Once, Cut Twice">
-					Running an experimental algorithim, please bear with me.
-					</div>
 					<br>
 					<br>
 					Account starting balance: $1000 - Starting XRP price: $0.5275
@@ -718,10 +714,6 @@
 					
 					<br>
 					-->
-					<br>
-					<div title="More tooltips with better descriptions are on their way.">
-						Added tooltips to clarify confusion! (Not mobile friendly)
-					</div>
 					
 					
 					
@@ -906,7 +898,7 @@
 					</div>
 					
 					<br>
-
+					<!--
 					<div title="Sales multiplier: Makes the base size of each trade 1% of the fixed point">
 						Sales Multiplier:
 						<div id=salesMultiplierDiv>
@@ -914,6 +906,7 @@
 						</div>
 					</div>
 					<br>
+					-->
 					<div title="Reinvestment multiplier: This is the maximum amount of cash to XRP ratio I can have. Anytime the cash is in a surplus, The fixed point gets increased and the reinvestment multiplier gets a slight increase. The larger the cash to XRP ratio, the safer the autotrader is from massive price drops. The problem with a really high cash to XRP ratio is that you can miss out on some gains if the price of XRP increases significantly very quickly.">
 						Reinvestment multiplier:
 						<div id=reserveMultiplierDiv>
