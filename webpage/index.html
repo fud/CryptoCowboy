@@ -76,10 +76,12 @@
 					if(msg == "We sold shares!")
 					{
 						$('#messages').append($('<li style="color:green;">').text(msg));
+						beep();
 					}
 					else if(msg == "We bought shares!")
 					{
 						$('#messages').append($('<li style="color:red;">').text(msg));
+						beep();
 					}
 					else if(msg.charAt(0) == '[')
 					{
@@ -139,11 +141,6 @@
 					else if(parseFloat(reinvestmentPercentage) < 0.00)
 					{
 						color = Math.floor(-parseFloat(reinvestmentPercentage) * 2.0);
-						
-						//$('#messages').append($('<li>').text(currentPricePercentage));
-						//$('#messages').append($('<li>').text(-parseFloat(currentPricePercentage)));
-
-						//$('#messages').append($('<li>').text(color));
 						
 						color = rgbToHex(color);
 						color = "#" + color + "0000";
@@ -217,17 +214,7 @@
 					openOrderRange = parseFloat(orderPriceSell - orderPricebuy);
 					currentPricePercentage = parseFloat((pricePerShare.toFixed(5)) - orderPricebuy) / openOrderRange;
 					currentPricePercentage = ((currentPricePercentage * 200.00) - 100.00).toFixed(2);	//	 To 200%
-					
-					
-					//$('#messages').append($('<li>').text(orderPricebuy.toFixed(4)));
-					//$('#messages').append($('<li>').text(orderPriceSell.toFixed(4)));
-					//$('#messages').append($('<li>').text(openOrderRange));
-					//$('#messages').append($('<li>').text(pricePerShare.toFixed(4)));
-					//$('#messages').append($('<li>').text(currentPricePercentage));
-					
-					
-					//$('#orderSplitDiv').text(currentPricePercentage.toFixed(2) + "%");
-					//$('#orderSplitDiv').text(currentPricePercentage + "%");
+
 					
 					let color = 0.00;
 					
@@ -244,11 +231,6 @@
 					else if(parseFloat(currentPricePercentage) < 0.00)
 					{
 						color = Math.floor(-parseFloat(currentPricePercentage) * 2.0);
-						
-						//$('#messages').append($('<li>').text(currentPricePercentage));
-						//$('#messages').append($('<li>').text(-parseFloat(currentPricePercentage)));
-
-						//$('#messages').append($('<li>').text(color));
 						
 						color = rgbToHex(color);
 						color = "#" + color + "0000";
@@ -410,9 +392,8 @@
 					
 				});
 				
-				socket.on('beep', function(msg)
+				socket.on('totalTransactions', function(msg)
 				{
-					//beep();
 					totalTransactions = msg;
 				});
 				
@@ -549,6 +530,9 @@
 					</div>
 				</th>
 				<th style="width:30%">
+					Mean reversion algorithm.
+					<br>
+					<br>
 					Please allow 30 seconds for all data to load.
 					<br>
 					<br>
@@ -558,6 +542,7 @@
 					Account starting balance: $1000 - Starting XRP price: $0.5275
 					<br>
 					<br>
+					
 					<table style="width:100%" border="1">
 						<tr>
 							<th>
@@ -872,7 +857,7 @@
 					
 					<br>
 					
-					<div title="Fixed point: This is a target XRP value that my bot tries to maintain. If the fixed point is $1000 and my total XRP value is $900, it will create larger buy orders than sell orders in an attempt to create an equilibrium. The name 'fixed point' is actually a legacy term from the early days of my bot when the number was actually fixed. It's now dynamic and changes based off of multiple different factors. I will likely change the name later.">
+					<div title="Fixed point: This is a target total XRP value that my bot tries to maintain. (Does not include XRP in the reserve.)">
 						Fixed Point:
 						<div id=fixedPointDiv>
 							Waiting for incoming data...
@@ -898,15 +883,7 @@
 					</div>
 					
 					<br>
-					<!--
-					<div title="Sales multiplier: Makes the base size of each trade 1% of the fixed point">
-						Sales Multiplier:
-						<div id=salesMultiplierDiv>
-							Sales multiplier
-						</div>
-					</div>
-					<br>
-					-->
+
 					<div title="Reinvestment multiplier: This is the maximum amount of cash to XRP ratio I can have. Anytime the cash is in a surplus, The fixed point gets increased and the reinvestment multiplier gets a slight increase. The larger the cash to XRP ratio, the safer the autotrader is from massive price drops. The problem with a really high cash to XRP ratio is that you can miss out on some gains if the price of XRP increases significantly very quickly.">
 						Reinvestment multiplier:
 						<div id=reserveMultiplierDiv>
@@ -919,6 +896,12 @@
 				</th>
 			</tr>
 		</table>
-		
+		<form action="">
+			<input id="textBox" autocomplete="off" />
+			
+			<button>
+				Send
+			</button>
+		</form>
 	</body>
 </html>
