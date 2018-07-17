@@ -71,6 +71,15 @@
 			{
 				socket = io();
 				
+				$('form').submit(function()
+				{
+					socket.emit('inputReceived', $('#textBox').val());	//	Emit textbox
+					
+					$('#textBox').val('');	//	Clear Text
+					
+					return false;
+				});
+				
 				socket.on('emit', function(msg)
 				{
 					if(msg == "We sold shares!")
