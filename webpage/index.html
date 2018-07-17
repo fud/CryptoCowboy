@@ -82,12 +82,12 @@
 				
 				socket.on('emit', function(msg)
 				{
-					if(msg == "We sold shares!")
+					if(msg == "We sold XRP!")
 					{
 						$('#messages').append($('<li style="color:green;">').text(msg));
 						beep();
 					}
-					else if(msg == "We bought shares!")
+					else if(msg == "We bought XRP!")
 					{
 						$('#messages').append($('<li style="color:red;">').text(msg));
 						beep();
