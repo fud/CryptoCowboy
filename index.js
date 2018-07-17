@@ -625,8 +625,11 @@ function getPricePerShare()
 //Buy XRP
 function createBuyOrder(shares, cost)
 {
-	let stringShare = shares.toString();
-	let stringCost = cost.toString();
+	//let stringShare = shares.toString();
+	//let stringCost = cost.toString();
+	
+	let stringShare = shares.toFixed(6);
+	let stringCost = cost.toFixed(6);
 	
 	let buyOrder = 
 	{
@@ -656,9 +659,11 @@ function createBuyOrder(shares, cost)
 //Sell XRP
 function createSellOrder(shares, cost)
 {
-	let stringShare = shares.toString();
-	let stringCost = cost.toString();
+	//let stringShare = shares.toString();
+	//let stringCost = cost.toString();
 	
+	let stringShare = shares.toFixed(6);
+	let stringCost = cost.toFixed(6);
 	
 	let sellOrder = 
 	{
