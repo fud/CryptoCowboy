@@ -2,6 +2,8 @@
 
 A live working sample can be found here: http://computercowboy.tech/
 
+Tutorial: https://www.youtube.com/watch?v=yVVLsfQgf7A
+
 This is a beta release; Use at your own risk.
 
 
