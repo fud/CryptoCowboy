@@ -10,7 +10,10 @@ This is a beta release; Use at your own risk and read all instructions prior to 
 <b>Tutorial:</b> https://www.youtube.com/watch?v=yVVLsfQgf7A
 
 <b>Discord:</b> https://discord.gg/DMySJ8
-If you have any questions, my preferred contact method would be my Discord channel. I'm trying to create a community for people to help each other out and share ideas.
+<br>
+If you have any questions, Discord is my preferred contact method.
+<br>
+I'm trying to create a community for people to help each other out and share ideas.
 
 <br>
 <br>
