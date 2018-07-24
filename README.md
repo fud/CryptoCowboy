@@ -1,21 +1,30 @@
 # CryptoCowboy
+<b>CryptoCowboy v1.1b</b>
+<br>
+This is a beta release; Use at your own risk and read all instructions prior to using.
+
+<br>
 
 A live working sample can be found here: http://computercowboy.tech/
 
 Tutorial: https://www.youtube.com/watch?v=yVVLsfQgf7A
 
-This is a beta release; Use at your own risk and read all instructions prior to using.
+Discord: https://discord.gg/DMySJ8
+If you have any questions, my preferred contact method would be my Discord channel. I'm trying to create a community for people to help each other out and share ideas.
 
+<br>
+<br>
 
-TODO - Bug fixes:
+<b>TODO - Bug fixes:</b>
 
-• Issue with Simple Windows desktop trader v1.1 when using non-USD currencies.
+• Issue with Simple Windows desktop trader v1.1b when using non-USD currencies.
 
+<br>
+<br>
 
+<b>TODO - Features:</b>
 
-TODO - Features:
-
-• Add option to change default port in the Windows desktop trader v1.1
+• Add option to change default port in the Windows desktop trader v1.1b
 
 • Add a user-configurable option to manipulate the rangePercentage cooldown rate and order reset rate.
 
@@ -25,8 +34,10 @@ TODO - Features:
 
 • Streamline the configuation process to remove any ambiguity. Most likely a setup wizard that will guide you through the process.
 
+<br>
+<br>
 
-TODO - General:
+<b>TODO - General:</b>
 
 • Add more useful comments.
 
