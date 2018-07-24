@@ -5,11 +5,11 @@ This is a beta release; Use at your own risk and read all instructions prior to 
 
 <br>
 
-A live working sample can be found here: http://computercowboy.tech/
+<b>Live Example:</b> http://computercowboy.tech/
 
-Tutorial: https://www.youtube.com/watch?v=yVVLsfQgf7A
+<b>Tutorial:</b> https://www.youtube.com/watch?v=yVVLsfQgf7A
 
-Discord: https://discord.gg/DMySJ8
+<b>Discord:</b> https://discord.gg/DMySJ8
 If you have any questions, my preferred contact method would be my Discord channel. I'm trying to create a community for people to help each other out and share ideas.
 
 <br>
