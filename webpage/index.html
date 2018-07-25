@@ -74,7 +74,6 @@
 				$('form').submit(function()
 				{
 					socket.emit('inputReceived', $('#textBox').val());	//	Emit textbox
-					
 					$('#textBox').val('');	//	Clear Text
 					
 					return false;
@@ -82,12 +81,12 @@
 				
 				socket.on('emit', function(msg)
 				{
-					if(msg == "We sold shares!")
+					if(msg == "We sold XRP!")
 					{
 						$('#messages').append($('<li style="color:green;">').text(msg));
 						beep();
 					}
-					else if(msg == "We bought shares!")
+					else if(msg == "We bought XRP!")
 					{
 						$('#messages').append($('<li style="color:red;">').text(msg));
 						beep();
@@ -539,13 +538,19 @@
 					</div>
 				</th>
 				<th style="width:30%">
-					Mean reversion algorithm.
-					<br>
-					<br>
 					Please allow 30 seconds for all data to load.
 					<br>
 					<br>
-					Source Code: https://github.com/Brietoe/CryptoCowboy
+					<a href="https://www.youtube.com/watch?v=yVVLsfQgf7A">Tutorial</a>
+					<br>
+					<br>
+					<a href="https://github.com/Brietoe/CryptoCowboy">Source Code</a>
+					<br>
+					<br>
+					<a href="/XRPLBotExample.pdf">Algorithm Example</a>
+					<br>
+					<br>
+					<a href="https://www.youtube.com/watch?v=rfAf3CMvATo">Visual Representation of Algorithm</a>
 					<br>
 					<br>
 					Account starting balance: $1000 - Starting XRP price: $0.5275
@@ -697,7 +702,25 @@
 						</tr>
 					</table>
 					
+					<br>
+					Donate: rBCA75NX9SGo3sawJQaQNX1ujEY9xZsYBj
+					<br>
+					<br>
+					<a href="/log.txt">Full log</a>
+					<br>
+					<br>
+					<a href="/investmentInfo.csv">Trade Log [Starting From 7/18/18]</a>
+					<br>
+					<br>
+					<!--
+					<a href="/priceLog.csv">Price Log - A</a>
+					<br>
+					<br>
 					
+					<a href="/priceLogChart.csv">Price Log - B</a>
+					<br>
+					<br>
+					-->
 					<!--
 					<div>
 						BTC Price:

@@ -39,7 +39,7 @@ var fixedPoint = 667.00;
 var rangeLow = 0.015;
 var rangeHigh = 0.10;
 
-var rangeIncrement = 0.0050;
+var rangeIncrement = 0.01;
 var rangeIncrementTime = 0.00010;
 
 var rangePercentage = 0.015;
@@ -52,7 +52,7 @@ var range = 0.00;
 var reserveMultiplier = 0.50;		
 var transactionID = 0;
 var XRP = 0;
-var USD = 0;
+var currency = 0;
 
 var cash = 0.00;
 var cashOld = 0.00;
@@ -84,6 +84,8 @@ var dayTradeGains = 0;
 var orderPriceBuy = 0.00;
 var orderPriceSell = 0.00;
 
+var buyCost = 0.00;
+var sellCost = 0.00;
 
 var orderSequence = null;
 var orderCancellation = null;
@@ -91,7 +93,9 @@ var orderCancellation = null;
 var salesMultiplier = 1.00;	
 			
 var tradeValue = 0.00;			
-		
+
+var currencyCode = "";
+var currencySymbol = "";
 /////
 //writeTime();	//	Only call once
 //writeFiles();
@@ -100,7 +104,7 @@ var tradeValue = 0.00;
 readFiles();
 readFilesOnce();
 setTimeout(decreaseRange, 60000);
-getPricePerShare();
+setTimeout(getPricePerShare, 5000);
 
 for (let j = 0; j < process.argv.length; j++) 
 {  
@@ -126,6 +130,42 @@ for (let j = 0; j < process.argv.length; j++)
 app.get('/', function(req, res)
 {
 	res.sendFile(__dirname + '/webpage/index.html');
+	
+});
+
+app.get('/XRPLBotExample.pdf', function(req, res)
+{
+	res.sendFile(__dirname + '/webpage/XRPLBotExample.pdf');
+	
+});
+
+app.get('/CryptoCowboy.zip', function(req, res)
+{
+	res.sendFile(__dirname + '/webpage/CryptoCowboy.zip');
+	
+});
+
+app.get('/investmentInfo.csv', function(req, res)
+{
+	res.sendFile(__dirname + '/logs/investmentInfo.csv');
+	
+});
+
+app.get('/log.txt', function(req, res)
+{
+	res.sendFile(__dirname + '/logs/log.txt');
+	
+});
+
+app.get('/priceLog.csv', function(req, res)
+{
+	res.sendFile(__dirname + '/logs/priceLog.csv');
+	
+});
+
+app.get('/priceLogChart.csv', function(req, res)
+{
+	res.sendFile(__dirname + '/logs/priceLogChart.csv');
 	
 });
 
@@ -325,8 +365,10 @@ function start()
 				log("We sold XRP!");
 				totalTransactions++;
 				io.emit('totalTransactions', totalTransactions);
-	
+				
 				dayTradeGains += tradeValue;
+				
+				investmentInfo(totalTransactions, "Sell", sellCost, tradeValue);
 				
 				let percentageCashVSMax = cash / (marketValue * reserveMultiplier);
 				
@@ -354,7 +396,11 @@ function start()
 				io.emit('dayTradeGains', dayTradeGains);
 
 				log("We bought XRP!");
+				
 				totalTransactions++;
+				
+				investmentInfo(totalTransactions, "Buy", buyCost, 0.00);
+				
 				io.emit('totalTransactions', totalTransactions);
 			}
 			
@@ -512,9 +558,11 @@ function buy()
 
 	let cost = Number((shares * buyPrice).toFixed(6));	//	Cost for transaction
 	
+	buyCost = cost;
+	
 	if((cost + 1.00) >= cash)
 	{
-		log("We don't have enough USD to trade.");
+		log("We don't have enough " + currency + " to trade.");
 		
 		api.disconnect().then(() => 
 		{
@@ -525,7 +573,6 @@ function buy()
 
 		setTimeout(shutDown, 100);
 	}
-	
 	
 	//XRP has 6 significant digits past the decimal point. In other words, XRP cannot be divided into positive values smaller than 0.000001 (1e-6). XRP has a maximum value of 100000000000 (1e11).
 
@@ -563,6 +610,7 @@ function sell()
 	let shares = range / sellPrice;	//	Shares to trade
 	
 	let cost = Number((shares * sellPrice).toFixed(6));	//	Cost for transaction
+	sellCost = cost;
 	tradeValue = parseFloat(cost) * (rangePercentage - 0.002);	//	0.002 is gatehub fee
 	
 	let sellPriceClean = sellPrice.toFixed(4);	//	For text output only
@@ -596,8 +644,9 @@ function getPricePerShare()
 	//let url = "https://www.bitstamp.net/api/v2/ticker/xrpusd/";
 		
 	//let url = "https://data.ripple.com/v2/exchange_rates/XRP/USD+rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq"	//	USDS wallet this was in use
-	let url = "https://data.ripple.com/v2/exchanges/XRP/USD+rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq?descending=true&limit=1"	//	Gatehub, works
-
+	
+	let url = "https://data.ripple.com/v2/exchanges/XRP/" + currencySymbol + "+" + currencyCode + "?descending=true&limit=1"	//	Gatehub, works
+	console.log("Reading from: " + url);
 	console.log("Getting price");
 	request
 	({
@@ -615,7 +664,7 @@ function getPricePerShare()
 		else
 		{
 			log("Error getting price");
-			log(response);
+			log("Status code: " + (response.statusCode).toString());
 
 		}
 		console.log(body);
@@ -625,11 +674,8 @@ function getPricePerShare()
 //Buy XRP
 function createBuyOrder(shares, cost)
 {
-	//let stringShare = shares.toString();
-	//let stringCost = cost.toString();
-	
-	let stringShare = shares.toFixed(6);
-	let stringCost = cost.toFixed(6);
+	let stringShare = shares.toString();
+	let stringCost = cost.toString();
 	
 	let buyOrder = 
 	{
@@ -643,8 +689,8 @@ function createBuyOrder(shares, cost)
 	  
 	  "totalPrice": 
 	  {
-		"currency": "USD",
-		"counterparty": "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq",
+		"currency": currencySymbol,
+		"counterparty": currencyCode,
 		"value": stringCost
 	  },
 	  
@@ -659,11 +705,9 @@ function createBuyOrder(shares, cost)
 //Sell XRP
 function createSellOrder(shares, cost)
 {
-	//let stringShare = shares.toString();
-	//let stringCost = cost.toString();
+	let stringShare = shares.toString();
+	let stringCost = cost.toString();
 	
-	let stringShare = shares.toFixed(6);
-	let stringCost = cost.toFixed(6);
 	
 	let sellOrder = 
 	{
@@ -677,8 +721,8 @@ function createSellOrder(shares, cost)
 	  
 	  "totalPrice": 
 	  {
-		"currency": "USD",
-		"counterparty": "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq",
+		"currency": currencySymbol,
+		"counterparty": currencyCode,
 		"value": stringCost
 	  },
 	  
@@ -864,6 +908,16 @@ function readFilesOnce()
 	{
 		secret = data;
 	});
+	
+	fs.readFile('config/currencyCode.txt', 'utf8', function(err, data) 
+	{
+		currencyCode = data;
+	});
+	
+	fs.readFile('config/currencySymbol.txt', 'utf8', function(err, data) 
+	{
+		currencySymbol = data;
+	});
 }
 
 // Only use once
@@ -933,14 +987,14 @@ function writePriceLog()
 	getTime = Math.floor(getTime / 1000);
 	getTime = getTime - programStartingTime;
 	
-	let priceLogLine = (getTime.toString() + ", " + pricePerShare.toString() + ", " + USD.toString() + ", " + marketValue.toString() + ", " + XRP.toString() + ", \n");
+	let priceLogLine = (getTime.toString() + ", " + pricePerShare.toString() + ", " + currency.toString() + ", " + marketValue.toString() + ", " + XRP.toString() + ", \n");
 	fs.appendFile('logs/priceLog.csv', priceLogLine, function (err) 
 	{
 		if (err) throw err;
 		console.log('Saved priceLogLine!');
 	});
 
-	let netWorthValue = (parseFloat(USD) + parseFloat(marketValue));
+	let netWorthValue = (parseFloat(currency) + parseFloat(marketValue));
 	netWorthValue = parseFloat(netWorthValue.toFixed(2));
 
 	let priceLogChart = (getTime.toString() + ", " + pricePerShare.toString() + ", " + netWorthValue.toString() + ", \n");
@@ -949,7 +1003,32 @@ function writePriceLog()
 		if (err) throw err;
 		console.log('Saved priceLogChart!');
 	});
+
 }
+
+function investmentInfo(transactions, direction, amountTraded, gain)
+{
+	let getTime = new Date();
+	getTime = getTime.getTime();
+	getTime = parseInt(getTime);
+	getTime = Math.floor(getTime / 1000);
+	getTime = getTime - programStartingTime;
+
+	let netWorthValue = (parseFloat(currency) + parseFloat(marketValue));
+	let currentProfit = netWorthValue - 1000.00;
+	let currentProfitPercentage = ((currentProfit / 1000.00) * 100.00);
+
+	//let investmentInfo = (getTime.toString() + ", " + pricePerShare.toString() + ", " + netWorthValue.toString() + ", \n");
+	let investmentInfo = (getTime.toString() + ", " + transactions.toString() + ", " + direction + ", " + amountTraded.toString() + ", " + gain.toString() + ", " + netWorthValue.toString() + ", " + currentProfit.toString
+	() + ", " + currentProfitPercentage.toString() + ", \n");
+	
+	fs.appendFile('logs/investmentInfo.csv', investmentInfo, function (err) 
+	{
+		if (err) throw err;
+		console.log('Saved investmentInfo!');
+	});
+}
+
 
 function writeTimeout()
 {
@@ -1004,12 +1083,12 @@ function getBalance()
 				console.log(" ");
 				io.emit('XRP', XRP);
 			}
-			else if(balances[i].currency == "USD" && balances[i].counterparty == "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq")
+			else if(balances[i].currency == currencySymbol && balances[i].counterparty == currencyCode)
 			{
-				let resultMessage = "USD: $";
-				USD = balances[i].value;
+				let resultMessage = currencySymbol + ": $";
+				currency = balances[i].value;
 				
-				cash = parseFloat(USD);
+				cash = parseFloat(currency);
 				
 				if(cashOld == 0.00)
 				{
@@ -1023,7 +1102,7 @@ function getBalance()
 				
 				cash = (cash - reserve);	
 
-				resultMessage += USD;
+				resultMessage += currency;
 				counterparty = balances[i].counterparty;
 				console.log(resultMessage);
 

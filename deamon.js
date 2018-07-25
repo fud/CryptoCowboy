@@ -8,7 +8,6 @@ var readTime = 0;
 var oldTime = 0;
 const assert = require('assert');
 
-
 init();
 
 setTimeout(readFiles, 180000);
