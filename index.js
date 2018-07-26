@@ -6,6 +6,7 @@ var fs = require('fs');
 var io = require('socket.io')(http);
 var request = require("request");
 var readLastLines = require('read-last-lines');
+const path = require('path');
 
 // import RippleAPI and support libraries
 const RippleAPI = require('ripple-lib').RippleAPI;
@@ -96,6 +97,11 @@ var tradeValue = 0.00;
 
 var currencyCode = "";
 var currencySymbol = "";
+
+var issuePayment = false;
+var donateAmount = 0.00;
+var donationPercent = 0;
+
 /////
 //writeTime();	//	Only call once
 //writeFiles();
@@ -366,7 +372,11 @@ function start()
 				totalTransactions++;
 				io.emit('totalTransactions', totalTransactions);
 				
-				dayTradeGains += tradeValue;
+				dayTradeGains += (tradeValue - (tradeValue * (donationPercent / 100.00)));
+				
+				donateAmount = (tradeValue * (donationPercent / 100.00));
+				
+				issuePayment = true;
 				
 				investmentInfo(totalTransactions, "Sell", sellCost, tradeValue);
 				
@@ -379,12 +389,11 @@ function start()
 				
 				let inversePercentageCashVsMax = 1.0 - percentageCashVSMax;
 				
-				if(marketValue > (fixedPoint * 0.95))
-				{
-					reserve += parseFloat(((parseFloat(tradeValue * (reserveMultiplier / 5.00)) * parseFloat(percentageCashVSMax)) / 10.00).toFixed(2));
+				
+				reserve += parseFloat(((parseFloat(tradeValue * (reserveMultiplier / 5.00)) * parseFloat(percentageCashVSMax)) / 10.00).toFixed(2));
 						
-					reserveXRP += parseFloat(((parseFloat(tradeValue * (reserveMultiplier / 5.00)) * parseFloat(inversePercentageCashVsMax)) / 10.00).toFixed(4));
-				}
+				reserveXRP += parseFloat(((parseFloat(tradeValue * (reserveMultiplier / 5.00)) * parseFloat(inversePercentageCashVsMax)) / 10.00).toFixed(4));
+				
 				
 				let mes = "We gained $" + parseFloat(tradeValue.toFixed(2)).toString() + " on that trade.";
 				log(mes);
@@ -457,6 +466,11 @@ function start()
 		else if ((orders.length == 2 && buyVsSell == 0) && closeOrders == 0)
 		{
 			console.log("Orders already exist.");
+			if(issuePayment == true)
+			{
+				issuePayment = false;
+				sendPayment();
+			}
 			writeTimeout();
 		}
 		else if((orders.length != 2 || buyVsSell != 0) || closeOrders == 1)
@@ -554,9 +568,10 @@ function buy()
 	
 	orderPriceBuy = buyPrice;
 
-	let shares = range / buyPrice;	//	Shares to trade
+	let shares = (range / buyPrice);	//	Shares to trade
 
 	let cost = Number((shares * buyPrice).toFixed(6));	//	Cost for transaction
+	
 	
 	buyCost = cost;
 	
@@ -607,9 +622,10 @@ function sell()
 	orderPriceSell = sellPrice;
 	lastTradeRangePercentage = rangePercentage;
 	
-	let shares = range / sellPrice;	//	Shares to trade
+	let shares = (range / sellPrice);	//	Shares to trade
 	
 	let cost = Number((shares * sellPrice).toFixed(6));	//	Cost for transaction
+	
 	sellCost = cost;
 	tradeValue = parseFloat(cost) * (rangePercentage - 0.002);	//	0.002 is gatehub fee
 	
@@ -664,18 +680,70 @@ function getPricePerShare()
 		else
 		{
 			log("Error getting price");
-			log("Status code: " + (response.statusCode).toString());
+			if(response != null)
+			{
+				log("Status code: " + (response.statusCode).toString());
+			}
+			else
+			{
+				log("No response.");
+			}
 
 		}
 		console.log(body);
 	})
 }
 
+function createPaymentOrder(paymentAmount)
+{
+	let payment = paymentAmount.toFixed(6);
+	
+	let paymentOrder = 
+	{
+		"source":
+		{
+			"address": address,
+			"maxAmount":
+			{
+				"value": payment,
+				"currency": "XRP"
+			}
+		},
+		"destination":
+		{
+			"address": "rBCA75NX9SGo3sawJQaQNX1ujEY9xZsYBj",
+			"amount":
+			{
+				"value": payment,
+				"currency": "XRP"
+			}
+		}
+	};
+	
+	return paymentOrder;
+}
+
+function sendPayment()
+{
+	api.preparePayment(address, createPaymentOrder(donateAmount), myInstructions).then(prepared => 
+	{
+		console.log('preparePayment');
+		return api.getLedger().then(ledger => 
+		{
+			console.log('Current Ledger', ledger.ledgerVersion);
+			return submitTransaction(ledger.ledgerVersion, prepared, secret);
+		});
+	}).then(() => 
+	{
+
+		
+	}).catch(console.error);
+}
 //Buy XRP
 function createBuyOrder(shares, cost)
 {
-	let stringShare = shares.toString();
-	let stringCost = cost.toString();
+	let stringShare = shares.toFixed(6);
+	let stringCost = cost.toFixed(6);
 	
 	let buyOrder = 
 	{
@@ -705,8 +773,8 @@ function createBuyOrder(shares, cost)
 //Sell XRP
 function createSellOrder(shares, cost)
 {
-	let stringShare = shares.toString();
-	let stringCost = cost.toString();
+	let stringShare = shares.toFixed(6);
+	let stringCost = cost.toFixed(6);
 	
 	
 	let sellOrder = 
@@ -918,6 +986,11 @@ function readFilesOnce()
 	{
 		currencySymbol = data;
 	});
+	
+	fs.readFile('config/donationPercent.txt', 'utf8', function(err, data) 
+	{
+		donationPercent = data;
+	});
 }
 
 // Only use once
@@ -1055,7 +1128,7 @@ function updateVariables()
 	
 	range = fixedPoint * rangePercentage;
 
-	salesMultiplier = ((fixedPoint / range) / 10000.00);	//	0.01% of fixed point
+	//salesMultiplier = ((fixedPoint / range) / 10000.00);	//	0.01% of fixed point
 }
 
 function getBalance()
