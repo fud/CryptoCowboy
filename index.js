@@ -374,9 +374,13 @@ function start()
 				
 				dayTradeGains += (tradeValue - (tradeValue * (donationPercent / 100.00)));
 				
-				donateAmount = (tradeValue * (donationPercent / 100.00));
+				let donateValue = (tradeValue * (donationPercent / 100.00));
 				
-				issuePayment = true;
+				donateAmount = donateValue / pricePerShare;
+				if(donateValue >= 0.01)
+				{
+					issuePayment = true;
+				}
 				
 				investmentInfo(totalTransactions, "Sell", sellCost, tradeValue);
 				
