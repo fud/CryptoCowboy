@@ -382,7 +382,7 @@ function start()
 					issuePayment = true;
 				}
 				
-				investmentInfo(totalTransactions, "Sell", sellCost, tradeValue);
+				investmentInfo(totalTransactions, "Sell", sellCost, (tradeValue - (tradeValue * (donationPercent / 100.00))));
 				
 				let percentageCashVSMax = cash / (marketValue * reserveMultiplier);
 				
@@ -392,7 +392,6 @@ function start()
 				}
 				
 				let inversePercentageCashVsMax = 1.0 - percentageCashVSMax;
-				
 				
 				reserve += parseFloat(((parseFloat(tradeValue * (reserveMultiplier / 5.00)) * parseFloat(percentageCashVSMax)) / 10.00).toFixed(2));
 						
