@@ -10,7 +10,7 @@ This is a beta release; Use at your own risk.
 
 To start CryptoCowboy desktop version from Windows executable, simply open the executable. Note: This version automatically issues the 'Start' and 'Connect' commands so it is not nessesary to issue them manually via the web portal.
 <br><br>
-Start CryptoCowboy from CLI or Terminal:
+<b>Start CryptoCowboy from CLI or Terminal:</b>
 <br><br>
 sudo node index.js			-	Starts bot
 <br>
@@ -20,13 +20,13 @@ sudo node index.js Start &	-	Starts bot and autotomates the setup process (Autom
 <br>
 <br>
 Deamon.js is an optional supplimentary software that helps automatically reboot CC when an issue occurs. If a timeout error occurs, deamon.js will issue a hard reset on CC.<br>
-To start Deamon.js in a separate terminal:
+<b>To start Deamon.js in a separate terminal:</b>
 <br>
 <br>
 sudo node deamon.js &
 <br>
 <br>
-Website GUI Commands:
+<b>Website GUI Commands:</b>
 <br>
 <br>
 
@@ -43,7 +43,7 @@ DropRange   -    Drops the range percentage by 1% (Keep above 1.5%)
 BumpRange   -   Increases the range percentage by 1%
 <br>
 <br>
-Linux - i.e Ubuntu
+<b>Linux - i.e Ubuntu</b>
 <br>
 sudo pkill node                        -    Kills all node processes. Both index.js and deamon.js
 <br>
