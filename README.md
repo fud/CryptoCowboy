@@ -10,7 +10,7 @@ This is a beta release; Use at your own risk.
 
 To start CryptoCowboy desktop version from Windows executable, simply open the executable. Note: This version automatically issues the 'Start' and 'Connect' commands so it is not nessesary to issue them manually via the web portal.
 <br><br>
-<b>Start CryptoCowboy from CLI or Terminal:</b>
+<b>Start CryptoCowboy from Linux Terminal:</b>
 <br><br>
 sudo node index.js			-	Starts bot
 <br>
