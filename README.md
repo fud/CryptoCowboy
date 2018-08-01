@@ -19,7 +19,9 @@ sudo node index.js &		-	Starts bot and keeps bot running after closing terminal
 sudo node index.js Start &	-	Starts bot and autotomates the setup process (Automatically issues the 'Connect' and 'Start' commands)
 <br>
 <br>
-Deamon.js is an optional supplimentary software that helps automatically reboot CC when an issue occurs. If a timeout error occurs, deamon.js will issue a hard reset on CC.<br>
+Deamon.js is an optional supplimentary software that helps automatically reboot CC when an issue occurs. If a timeout error occurs, deamon.js will issue a hard reset on CC.
+<br>
+<br>
 <b>To start Deamon.js in a separate terminal:</b>
 <br>
 <br>
