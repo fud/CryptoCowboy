@@ -55,10 +55,10 @@ function init()
 
 function kill()
 {
-	cmd.run('sudo pkill -f "sudo node index.js Reddit"');
+	cmd.run('sudo pkill -f "sudo node index.js Start"');
 }
 
 function start()
 {
-	cmd.run('sudo node index.js Reddit &');
+	cmd.run('sudo node index.js Start &');
 }
